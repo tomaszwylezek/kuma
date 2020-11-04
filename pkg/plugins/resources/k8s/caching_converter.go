@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/patrickmn/go-cache"
 
 	k8s_common "github.com/kumahq/kuma/pkg/plugins/common/k8s"
@@ -40,7 +41,7 @@ func (c *cachingConverter) ToCoreResource(obj k8s_model.KubernetesObject, out co
 		obj.GetNamespace(),
 		obj.GetName(),
 		obj.GetResourceVersion(),
-		obj.GetObjectKind().GroupVersionKind().String(),
+		proto.MessageName(out.GetSpec()),
 	}, ":")
 	if obj.GetResourceVersion() == "" {
 		// an absent of the ResourceVersion means we decode 'obj' from webhook request,
