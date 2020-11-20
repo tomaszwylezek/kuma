@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/kumahq/kuma/pkg/core"
 	"github.com/kumahq/kuma/pkg/dns/resolver"
 
 	metrics_store "github.com/kumahq/kuma/pkg/metrics/store"
@@ -42,6 +43,8 @@ func buildRuntime(cfg kuma_cp.Config) (core_runtime.Runtime, error) {
 	if err := autoconfigure(&cfg); err != nil {
 		return nil, err
 	}
+
+	core.Log.Info("after autoconfig")
 	builder := core_runtime.BuilderFor(cfg)
 	if err := initializeMetrics(builder); err != nil {
 		return nil, err
@@ -58,6 +61,7 @@ func buildRuntime(cfg kuma_cp.Config) (core_runtime.Runtime, error) {
 	if err := initializeConfigStore(cfg, builder); err != nil {
 		return nil, err
 	}
+	core.Log.Info("after config store")
 	// we add Secret store to unified ResourceStore so global<->remote synchronizer can use unified interface
 	builder.WithResourceStore(core_store.NewCustomizableResourceStore(builder.ResourceStore(), map[core_model.ResourceType]core_store.ResourceStore{
 		system.SecretType: builder.SecretStore(),
@@ -74,6 +78,7 @@ func buildRuntime(cfg kuma_cp.Config) (core_runtime.Runtime, error) {
 		return nil, err
 	}
 
+	core.Log.Info("after res manager")
 	builder.WithDataSourceLoader(datasource.NewDataSourceLoader(builder.ReadOnlyResourceManager()))
 
 	if err := initializeCaManagers(builder); err != nil {
@@ -87,6 +92,7 @@ func buildRuntime(cfg kuma_cp.Config) (core_runtime.Runtime, error) {
 
 	builder.WithLookupIP(lookup.CachedLookupIP(net.LookupIP, cfg.General.DNSCacheTTL))
 
+	core.Log.Info("before build")
 	rt, err := builder.Build()
 	if err != nil {
 		return nil, err
@@ -96,6 +102,7 @@ func buildRuntime(cfg kuma_cp.Config) (core_runtime.Runtime, error) {
 		return nil, err
 	}
 
+	core.Log.Info("before customize runtime")
 	if err := customizeRuntime(rt); err != nil {
 		return nil, err
 	}
