@@ -3,6 +3,7 @@ package clusters
 import (
 	envoy_api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoy_cluster "github.com/envoyproxy/go-control-plane/envoy/api/v2/cluster"
+	"github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 
 	mesh_core "github.com/kumahq/kuma/pkg/core/resources/apis/mesh"
@@ -20,7 +21,11 @@ type OutlierDetectionConfigurer struct {
 	CircuitBreaker *mesh_core.CircuitBreakerResource
 }
 
-func (c *OutlierDetectionConfigurer) Configure(cluster *envoy_api.Cluster) error {
+func (c *OutlierDetectionConfigurer) ConfigureV3(cluster *envoy_config_cluster_v3.Cluster) error {
+	panic("implement me")
+}
+
+func (c *OutlierDetectionConfigurer) ConfigureV2(cluster *envoy_api.Cluster) error {
 	if c.CircuitBreaker == nil {
 		return nil
 	}

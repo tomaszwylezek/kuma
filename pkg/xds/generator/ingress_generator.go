@@ -106,7 +106,7 @@ func (_ IngressGenerator) services(proxy *model.Proxy) []string {
 
 func (i IngressGenerator) generateCDS(services []string, proxy *model.Proxy) (resources []*model.Resource, _ error) {
 	for _, service := range services {
-		edsCluster, err := envoy_clusters.NewClusterBuilder().
+		edsCluster, err := envoy_clusters.NewClusterBuilder(envoy_common.APIV2).
 			Configure(envoy_clusters.EdsCluster(service)).
 			Configure(envoy_clusters.LbSubset(i.lbSubsets(proxy.OutboundTargets[service]))).
 			Build()

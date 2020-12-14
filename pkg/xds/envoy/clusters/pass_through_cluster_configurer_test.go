@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	util_proto "github.com/kumahq/kuma/pkg/util/proto"
+	"github.com/kumahq/kuma/pkg/xds/envoy"
 	"github.com/kumahq/kuma/pkg/xds/envoy/clusters"
 )
 
@@ -21,7 +22,7 @@ var _ = Describe("PassThroughClusterConfigurer", func() {
         type: ORIGINAL_DST`
 
 		// when
-		cluster, err := clusters.NewClusterBuilder().
+		cluster, err := clusters.NewClusterBuilder(envoy.APIV2).
 			Configure(clusters.PassThroughCluster(clusterName)).
 			Build()
 

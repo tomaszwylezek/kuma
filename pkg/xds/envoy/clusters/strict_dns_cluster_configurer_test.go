@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/kumahq/kuma/pkg/core/xds"
+	"github.com/kumahq/kuma/pkg/xds/envoy"
 
 	util_proto "github.com/kumahq/kuma/pkg/util/proto"
 	"github.com/kumahq/kuma/pkg/xds/envoy/clusters"
@@ -34,7 +35,7 @@ var _ = Describe("StrictDNSClusterConfigurer", func() {
         type: STRICT_DNS`
 
 		// when
-		cluster, err := clusters.NewClusterBuilder().
+		cluster, err := clusters.NewClusterBuilder(envoy.APIV2).
 			Configure(clusters.StrictDNSCluster(clusterName, []xds.Endpoint{
 				{
 					Target: address,

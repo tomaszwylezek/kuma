@@ -5,17 +5,19 @@ import (
 	. "github.com/onsi/gomega"
 
 	util_proto "github.com/kumahq/kuma/pkg/util/proto"
+	"github.com/kumahq/kuma/pkg/xds/envoy"
 	"github.com/kumahq/kuma/pkg/xds/envoy/clusters"
 )
 
 var _ = Describe("DNSClusterConfigurer", func() {
 
-	It("should generate proper Envoy config", func() {
-		// given
-		clusterName := "test:cluster"
-		address := "google.com"
-		port := uint32(80)
-		expected := `
+	Describe("V2", func() {
+		It("should generate proper Envoy config", func() {
+			// given
+			clusterName := "test:cluster"
+			address := "google.com"
+			port := uint32(80)
+			expected := `
         altStatName: test_cluster
         connectTimeout: 5s
         loadAssignment:
@@ -30,16 +32,52 @@ var _ = Describe("DNSClusterConfigurer", func() {
         name: test:cluster
         type: STRICT_DNS`
 
-		// when
-		cluster, err := clusters.NewClusterBuilder().
-			Configure(clusters.DNSCluster(clusterName, address, port)).
-			Build()
+			// when
+			cluster, err := clusters.NewClusterBuilder(envoy.APIV2).
+				Configure(clusters.DNSCluster(clusterName, address, port)).
+				Build()
 
-		// then
-		Expect(err).ToNot(HaveOccurred())
+			// then
+			Expect(err).ToNot(HaveOccurred())
 
-		actual, err := util_proto.ToYAML(cluster)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(actual).To(MatchYAML(expected))
+			actual, err := util_proto.ToYAML(cluster)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(MatchYAML(expected))
+		})
+	})
+
+	XDescribe("V3", func() { // todo
+		It("should generate proper Envoy config", func() {
+			// given
+			clusterName := "test:cluster"
+			address := "google.com"
+			port := uint32(80)
+			expected := `
+        altStatName: test_cluster
+        connectTimeout: 5s
+        loadAssignment:
+          clusterName: test:cluster
+          endpoints:
+          - lbEndpoints:
+            - endpoint:
+                address:
+                  socketAddress:
+                    address: google.com
+                    portValue: 80
+        name: test:cluster
+        type: STRICT_DNS`
+
+			// when
+			cluster, err := clusters.NewClusterBuilder(envoy.APIV3).
+				Configure(clusters.DNSCluster(clusterName, address, port)).
+				Build()
+
+			// then
+			Expect(err).ToNot(HaveOccurred())
+
+			actual, err := util_proto.ToYAML(cluster)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(MatchYAML(expected))
+		})
 	})
 })

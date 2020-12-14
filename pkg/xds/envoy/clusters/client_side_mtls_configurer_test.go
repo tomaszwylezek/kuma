@@ -29,7 +29,7 @@ var _ = Describe("EdsClusterConfigurer", func() {
 	DescribeTable("should generate proper Envoy config",
 		func(given testCase) {
 			// when
-			cluster, err := clusters.NewClusterBuilder().
+			cluster, err := clusters.NewClusterBuilder(envoy.APIV2).
 				Configure(clusters.EdsCluster(given.clusterName)).
 				Configure(clusters.ClientSideMTLS(given.ctx, given.metadata, given.clientService, given.tags)).
 				Build()

@@ -1,14 +1,20 @@
 package clusters
 
 import (
-	envoy_api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	"errors"
+
+	envoy_api_v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoy_api "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+
+	"github.com/kumahq/kuma/pkg/xds/envoy"
 )
 
 // ClusterConfigurer is responsible for configuring a single aspect of the entire Envoy cluster,
 // such as filter chain, transparent proxying, etc.
 type ClusterConfigurer interface {
 	// Configure configures a single aspect on a given Envoy cluster.
-	Configure(cluster *envoy_api.Cluster) error
+	ConfigureV2(cluster *envoy_api_v2.Cluster) error
+	ConfigureV3(cluster *envoy_api.Cluster) error
 }
 
 // ClusterBuilderOpt is a configuration option for ClusterBuilder.
@@ -19,14 +25,17 @@ type ClusterBuilderOpt interface {
 	ApplyTo(config *ClusterBuilderConfig)
 }
 
-func NewClusterBuilder() *ClusterBuilder {
-	return &ClusterBuilder{}
+func NewClusterBuilder(apiVersion envoy.APIVersion) *ClusterBuilder {
+	return &ClusterBuilder{
+		apiVersion: apiVersion,
+	}
 }
 
 // ClusterBuilder is responsible for generating an Envoy cluster
 // by applying a series of ClusterConfigurers.
 type ClusterBuilder struct {
-	config ClusterBuilderConfig
+	apiVersion envoy.APIVersion
+	config     ClusterBuilderConfig
 }
 
 // Configure configures ClusterBuilder by adding individual ClusterConfigurers.
@@ -38,14 +47,27 @@ func (b *ClusterBuilder) Configure(opts ...ClusterBuilderOpt) *ClusterBuilder {
 }
 
 // Build generates an Envoy cluster by applying a series of ClusterConfigurers.
-func (b *ClusterBuilder) Build() (*envoy_api.Cluster, error) {
-	cluster := envoy_api.Cluster{}
-	for _, configurer := range b.config.Configurers {
-		if err := configurer.Configure(&cluster); err != nil {
-			return nil, err
+func (b *ClusterBuilder) Build() (envoy.NamedResource, error) {
+	switch b.apiVersion {
+	case envoy.APIV2:
+		cluster := envoy_api_v2.Cluster{}
+		for _, configurer := range b.config.Configurers {
+			if err := configurer.ConfigureV2(&cluster); err != nil {
+				return nil, err
+			}
 		}
+		return &cluster, nil
+	case envoy.APIV3:
+		cluster := envoy_api.Cluster{}
+		for _, configurer := range b.config.Configurers {
+			if err := configurer.ConfigureV3(&cluster); err != nil {
+				return nil, err
+			}
+		}
+		return &cluster, nil
+	default:
+		return nil, errors.New("unknown API")
 	}
-	return &cluster, nil
 }
 
 // ClusterBuilderConfig holds configuration of a ClusterBuilder.

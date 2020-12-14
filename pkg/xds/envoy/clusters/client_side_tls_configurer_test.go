@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/kumahq/kuma/pkg/core/xds"
+	"github.com/kumahq/kuma/pkg/xds/envoy"
 
 	util_proto "github.com/kumahq/kuma/pkg/util/proto"
 	"github.com/kumahq/kuma/pkg/xds/envoy/clusters"
@@ -22,7 +23,7 @@ var _ = Describe("ClientSideTLSConfigurer", func() {
 	DescribeTable("should generate proper Envoy config",
 		func(given testCase) {
 			// when
-			cluster, err := clusters.NewClusterBuilder().
+			cluster, err := clusters.NewClusterBuilder(envoy.APIV2).
 				Configure(clusters.EdsCluster(given.clusterName)).
 				Configure(clusters.ClientSideTLS(given.endpoints)).
 				Build()

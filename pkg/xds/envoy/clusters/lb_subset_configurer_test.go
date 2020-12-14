@@ -2,6 +2,7 @@ package clusters_test
 
 import (
 	util_proto "github.com/kumahq/kuma/pkg/util/proto"
+	"github.com/kumahq/kuma/pkg/xds/envoy"
 	"github.com/kumahq/kuma/pkg/xds/envoy/clusters"
 
 	. "github.com/onsi/ginkgo"
@@ -20,7 +21,7 @@ var _ = Describe("LbSubset", func() {
 	DescribeTable("should generate proper Envoy config",
 		func(given testCase) {
 			// when
-			cluster, err := clusters.NewClusterBuilder().
+			cluster, err := clusters.NewClusterBuilder(envoy.APIV2).
 				Configure(clusters.EdsCluster(given.clusterName)).
 				Configure(clusters.LbSubset(given.tags)).
 				Build()

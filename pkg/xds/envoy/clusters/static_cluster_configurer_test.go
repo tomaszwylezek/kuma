@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	util_proto "github.com/kumahq/kuma/pkg/util/proto"
+	"github.com/kumahq/kuma/pkg/xds/envoy"
 	"github.com/kumahq/kuma/pkg/xds/envoy/clusters"
 )
 
@@ -31,7 +32,7 @@ var _ = Describe("StaticClusterConfigurer", func() {
         type: STATIC`
 
 		// when
-		cluster, err := clusters.NewClusterBuilder().
+		cluster, err := clusters.NewClusterBuilder(envoy.APIV2).
 			Configure(clusters.StaticCluster(clusterName, address, port)).
 			Build()
 

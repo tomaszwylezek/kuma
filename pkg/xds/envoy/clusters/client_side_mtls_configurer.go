@@ -3,6 +3,7 @@ package clusters
 import (
 	envoy_api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoy_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	envoy_cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	pstruct "github.com/golang/protobuf/ptypes/struct"
 
 	core_xds "github.com/kumahq/kuma/pkg/core/xds"
@@ -42,7 +43,11 @@ type clientSideMTLSConfigurer struct {
 	tags          []envoy.Tags
 }
 
-func (c *clientSideMTLSConfigurer) Configure(cluster *envoy_api.Cluster) error {
+func (c *clientSideMTLSConfigurer) ConfigureV3(cluster *envoy_cluster.Cluster) error {
+	panic("implement me")
+}
+
+func (c *clientSideMTLSConfigurer) ConfigureV2(cluster *envoy_api.Cluster) error {
 	if !c.ctx.Mesh.Resource.MTLSEnabled() {
 		return nil
 	}

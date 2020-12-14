@@ -3,6 +3,7 @@ package clusters
 import (
 	envoy_api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoy_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	envoy_cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 
 	mesh_core "github.com/kumahq/kuma/pkg/core/resources/apis/mesh"
@@ -20,7 +21,7 @@ type healthCheckConfigurer struct {
 	healthCheck *mesh_core.HealthCheckResource
 }
 
-func (e *healthCheckConfigurer) Configure(cluster *envoy_api.Cluster) error {
+func (e *healthCheckConfigurer) ConfigureV2(cluster *envoy_api.Cluster) error {
 	if e.healthCheck == nil || e.healthCheck.Spec.Conf == nil {
 		return nil
 	}
@@ -35,4 +36,8 @@ func (e *healthCheckConfigurer) Configure(cluster *envoy_api.Cluster) error {
 		HealthyThreshold:   &wrappers.UInt32Value{Value: activeChecks.HealthyThreshold},
 	})
 	return nil
+}
+
+func (e *healthCheckConfigurer) ConfigureV3(cluster *envoy_cluster.Cluster) error {
+	panic("implement me")
 }

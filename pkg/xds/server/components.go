@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	envoy_service_discovery_v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	envoy_server "github.com/envoyproxy/go-control-plane/pkg/server/v2"
 	"google.golang.org/grpc"
 
@@ -114,6 +115,7 @@ func RegisterXDS(rt core_runtime.Runtime, server *grpc.Server) error {
 
 	xdsServerLog.Info("registering Aggregated Discovery Service in Dataplane Server")
 	envoy_service_discovery_v2.RegisterAggregatedDiscoveryServiceServer(server, srv)
+	envoy_service_discovery_v3.RegisterAggregatedDiscoveryServiceServer(server, srv)
 	return nil
 }
 

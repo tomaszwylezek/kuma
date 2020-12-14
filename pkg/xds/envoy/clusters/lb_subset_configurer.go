@@ -2,6 +2,7 @@ package clusters
 
 import (
 	envoy_api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoy_cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 )
 
 // LbSubset is required for MetadataMatch in Weighted Cluster in TCP Proxy to work.
@@ -32,7 +33,7 @@ type lbSubsetConfigurer struct {
 	keySets [][]string
 }
 
-func (e *lbSubsetConfigurer) Configure(c *envoy_api.Cluster) error {
+func (e *lbSubsetConfigurer) ConfigureV2(c *envoy_api.Cluster) error {
 	var selectors []*envoy_api.Cluster_LbSubsetConfig_LbSubsetSelector
 	for _, keys := range e.keySets {
 		if len(keys) == 0 {
@@ -48,6 +49,28 @@ func (e *lbSubsetConfigurer) Configure(c *envoy_api.Cluster) error {
 		// if lb subset is set, but no label (Kuma's tag) is queried, we should return any endpoint
 		c.LbSubsetConfig = &envoy_api.Cluster_LbSubsetConfig{
 			FallbackPolicy:  envoy_api.Cluster_LbSubsetConfig_ANY_ENDPOINT,
+			SubsetSelectors: selectors,
+		}
+	}
+	return nil
+}
+
+func (e *lbSubsetConfigurer) ConfigureV3(c *envoy_cluster.Cluster) error {
+	var selectors []*envoy_cluster.Cluster_LbSubsetConfig_LbSubsetSelector
+	for _, keys := range e.keySets {
+		if len(keys) == 0 {
+			continue
+		}
+		selectors = append(selectors, &envoy_cluster.Cluster_LbSubsetConfig_LbSubsetSelector{
+			Keys: keys,
+			// if there is a split by "version", and there is no endpoint with such version we should not fallback to all endpoints of the service
+			FallbackPolicy: envoy_cluster.Cluster_LbSubsetConfig_LbSubsetSelector_NO_FALLBACK,
+		})
+	}
+	if len(selectors) > 0 {
+		// if lb subset is set, but no label (Kuma's tag) is queried, we should return any endpoint
+		c.LbSubsetConfig = &envoy_cluster.Cluster_LbSubsetConfig{
+			FallbackPolicy:  envoy_cluster.Cluster_LbSubsetConfig_ANY_ENDPOINT,
 			SubsetSelectors: selectors,
 		}
 	}
