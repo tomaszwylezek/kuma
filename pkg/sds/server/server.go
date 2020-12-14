@@ -19,6 +19,7 @@ import (
 	core_metrics "github.com/kumahq/kuma/pkg/metrics"
 	util_watchdog "github.com/kumahq/kuma/pkg/util/watchdog"
 	util_xds "github.com/kumahq/kuma/pkg/util/xds"
+	v2 "github.com/kumahq/kuma/pkg/util/xds/v2"
 	xds_auth "github.com/kumahq/kuma/pkg/xds/auth"
 	xds_server "github.com/kumahq/kuma/pkg/xds/server"
 	xds_sync "github.com/kumahq/kuma/pkg/xds/sync"
@@ -71,7 +72,7 @@ func RegisterSDS(rt core_runtime.Runtime, server *grpc.Server) error {
 		statsCallbacks,
 		util_xds.LoggingCallbacks{Log: sdsServerLog},
 		authCallbacks,
-		syncTracker,
+		v2.NewAdapterCallbacks(syncTracker),
 	}
 
 	srv := envoy_server.NewServer(context.Background(), cache, callbacks)
@@ -81,7 +82,7 @@ func RegisterSDS(rt core_runtime.Runtime, server *grpc.Server) error {
 	return nil
 }
 
-func syncTracker(reconciler *DataplaneReconciler, refresh time.Duration, metrics core_metrics.Metrics) (envoy_server.Callbacks, error) {
+func syncTracker(reconciler *DataplaneReconciler, refresh time.Duration, metrics core_metrics.Metrics) (util_xds.Callbacks, error) {
 	sdsGenerations := prometheus.NewSummary(prometheus.SummaryOpts{
 		Name:       "sds_generation",
 		Help:       "Summary of SDS Snapshot generation",

@@ -11,11 +11,11 @@ import (
 	dp_server "github.com/kumahq/kuma/pkg/config/dp-server"
 	core_system "github.com/kumahq/kuma/pkg/core/resources/apis/system"
 	"github.com/kumahq/kuma/pkg/core/resources/registry"
+	v2 "github.com/kumahq/kuma/pkg/util/xds/v2"
 	"github.com/kumahq/kuma/pkg/xds/cache/cla"
 	"github.com/kumahq/kuma/pkg/xds/cache/mesh"
 
 	envoy_service_discovery_v2 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
-	envoy_xds "github.com/envoyproxy/go-control-plane/pkg/server/v2"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	kube_auth "k8s.io/api/authentication/v1"
@@ -104,7 +104,7 @@ func RegisterXDS(rt core_runtime.Runtime, server *grpc.Server) error {
 		statsCallbacks,
 		connectionInfoTracker,
 		authCallbacks,
-		syncTracker,
+		v2.NewAdapterCallbacks(syncTracker),
 		metadataTracker,
 		lifecycle,
 		statusTracker,
@@ -174,7 +174,7 @@ func DefaultIngressReconciler(rt core_runtime.Runtime) SnapshotReconciler {
 	}
 }
 
-func DefaultDataplaneSyncTracker(rt core_runtime.Runtime, reconciler, ingressReconciler SnapshotReconciler, metadataTracker *DataplaneMetadataTracker, connectionInfoTracker *ConnectionInfoTracker) (envoy_xds.Callbacks, error) {
+func DefaultDataplaneSyncTracker(rt core_runtime.Runtime, reconciler, ingressReconciler SnapshotReconciler, metadataTracker *DataplaneMetadataTracker, connectionInfoTracker *ConnectionInfoTracker) (util_xds.Callbacks, error) {
 	permissionsMatcher := permissions.TrafficPermissionsMatcher{ResourceManager: rt.ReadOnlyResourceManager()}
 	logsMatcher := logs.TrafficLogsMatcher{ResourceManager: rt.ReadOnlyResourceManager()}
 	faultInjectionMatcher := faultinjections.FaultInjectionMatcher{ResourceManager: rt.ReadOnlyResourceManager()}
