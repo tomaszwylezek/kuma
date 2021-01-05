@@ -1,4 +1,4 @@
-package server_test
+package v3_test
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 
 	"github.com/kumahq/kuma/pkg/xds/envoy/tls"
 
-	envoy_api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoy_api_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	envoy_discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
-	envoy_resource "github.com/envoyproxy/go-control-plane/pkg/resource/v2"
+	envoy_api_core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
+	envoy_service_secret "github.com/envoyproxy/go-control-plane/envoy/service/secret/v3"
+	envoy_resource "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
@@ -41,7 +41,7 @@ var _ = Describe("SDS Server", func() {
 
 	var dpCredential tokens_issuer.Token
 	var stop chan struct{}
-	var client envoy_discovery.SecretDiscoveryServiceClient
+	var client envoy_service_secret.SecretDiscoveryServiceClient
 	var conn *grpc.ClientConn
 	var metrics core_metrics.Metrics
 
@@ -60,8 +60,8 @@ var _ = Describe("SDS Server", func() {
 		port, err := test.GetFreePort()
 		Expect(err).ToNot(HaveOccurred())
 		cfg.DpServer.Port = port
-		cfg.DpServer.TlsCertFile = filepath.Join("..", "..", "..", "test", "certs", "server-cert.pem")
-		cfg.DpServer.TlsKeyFile = filepath.Join("..", "..", "..", "test", "certs", "server-key.pem")
+		cfg.DpServer.TlsCertFile = filepath.Join("..", "..", "..", "..", "test", "certs", "server-cert.pem")
+		cfg.DpServer.TlsKeyFile = filepath.Join("..", "..", "..", "..", "test", "certs", "server-key.pem")
 		cfg.DpServer.Auth.Type = dp_server_cfg.DpServerAuthDpToken
 
 		builder, err := runtime.BuilderFor(cfg)
@@ -141,7 +141,7 @@ var _ = Describe("SDS Server", func() {
 
 		// wait for SDS server
 		Eventually(func() error {
-			creds, err := credentials.NewClientTLSFromFile(filepath.Join("..", "..", "..", "test", "certs", "server-cert.pem"), "")
+			creds, err := credentials.NewClientTLSFromFile(filepath.Join("..", "..", "..", "..", "test", "certs", "server-cert.pem"), "")
 			if err != nil {
 				return err
 			}
@@ -150,7 +150,7 @@ var _ = Describe("SDS Server", func() {
 				return err
 			}
 			conn = c
-			client = envoy_discovery.NewSecretDiscoveryServiceClient(conn)
+			client = envoy_service_secret.NewSecretDiscoveryServiceClient(conn)
 			_, err = client.StreamSecrets(context.Background()) // dial is not enough, we need to double check if we can start to stream secrets
 			return err
 		}).ShouldNot(HaveOccurred())
@@ -163,8 +163,8 @@ var _ = Describe("SDS Server", func() {
 		close(stop)
 	})
 
-	newRequestForSecrets := func() envoy_api.DiscoveryRequest {
-		return envoy_api.DiscoveryRequest{
+	newRequestForSecrets := func() envoy_discovery.DiscoveryRequest {
+		return envoy_discovery.DiscoveryRequest{
 			Node: &envoy_api_core.Node{
 				Id: "default.backend-01",
 			},
@@ -204,7 +204,7 @@ var _ = Describe("SDS Server", func() {
 		Expect(dpInsight.Spec.MTLS.CertificateExpirationTime.Seconds).To(Equal(expirationSeconds))
 
 		// and metrics are published
-		Expect(test_metrics.FindMetric(metrics, "sds_cert_generation").GetGauge().GetValue()).To(Equal(1.0))
+		Expect(test_metrics.FindMetric(metrics, "sds_cert_generation").GetCounter().GetValue()).To(Equal(1.0))
 		Expect(test_metrics.FindMetric(metrics, "sds_generation")).ToNot(BeNil())
 
 		close(done)
@@ -212,8 +212,8 @@ var _ = Describe("SDS Server", func() {
 
 	Context("should return new pair of + key", func() { // we cannot use DescribeTable because it does not support timeouts
 
-		var firstExchangeResponse *envoy_api.DiscoveryResponse
-		var stream envoy_discovery.SecretDiscoveryService_StreamSecretsClient
+		var firstExchangeResponse *envoy_discovery.DiscoveryResponse
+		var stream envoy_service_secret.SecretDiscoveryService_StreamSecretsClient
 
 		BeforeEach(func(done Done) {
 			// given

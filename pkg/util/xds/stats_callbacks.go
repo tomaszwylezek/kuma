@@ -5,6 +5,8 @@ import (
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/kumahq/kuma/pkg/core"
 )
 
 type StatsCallbacks struct {
@@ -23,6 +25,9 @@ func NewStatsCallbacks(metrics prometheus.Registerer, dsType string) (Callbacks,
 	stats.ResponsesSentMetric = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: dsType + "_responses_sent",
 		Help: "Number of responses sent by the server to a client",
+		ConstLabels: map[string]string{
+			"apiver": core.NewUUID(),
+		},
 	}, []string{"type_url"})
 	if err := metrics.Register(stats.ResponsesSentMetric); err != nil {
 		return nil, err
@@ -31,6 +36,9 @@ func NewStatsCallbacks(metrics prometheus.Registerer, dsType string) (Callbacks,
 	stats.RequestsReceivedMetric = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: dsType + "_requests_received",
 		Help: "Number of confirmations requests from a client",
+		ConstLabels: map[string]string{
+			"apiver": core.NewUUID(),
+		},
 	}, []string{"type_url", "confirmation"})
 	if err := metrics.Register(stats.RequestsReceivedMetric); err != nil {
 		return nil, err
@@ -39,6 +47,9 @@ func NewStatsCallbacks(metrics prometheus.Registerer, dsType string) (Callbacks,
 	streamsActive := prometheus.NewGaugeFunc(prometheus.GaugeOpts{
 		Name: dsType + "_streams_active",
 		Help: "Number of active connections between a server and a client",
+		ConstLabels: map[string]string{
+			"apiver": core.NewUUID(),
+		},
 	}, func() float64 {
 		stats.RLock()
 		defer stats.RUnlock()

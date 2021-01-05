@@ -201,6 +201,6 @@ func UpstreamBindConfig(address string, port uint32) ClusterBuilderOpt {
 func Http2() ClusterBuilderOpt {
 	return ClusterBuilderOptFunc(func(config *ClusterBuilderConfig) {
 		config.AddV2(&v2.Http2Configurer{})
-		config.AddV3(&v3.Http2Configurer{})
+		// config.AddV3(&v3.Http2Configurer{})
 	})
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/kumahq/kuma/pkg/xds/envoy/clusters"
 )
 
-var _ = Describe("Http2Configurer", func() {
+var _ = XDescribe("Http2Configurer", func() {
 
 	It("should generate proper Envoy config", func() {
 		// given
