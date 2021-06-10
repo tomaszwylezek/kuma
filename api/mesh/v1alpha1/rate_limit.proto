@@ -21,7 +21,7 @@ message RateLimit {
 
   message Conf {
     message Http {
-      // The number of HTTP requests this RateLimiter allows
+      // The number of allowed HTTP requests this RateLimiter allows
       // +required
       uint32 requests = 1;
 
@@ -57,9 +57,23 @@ message RateLimit {
       OnRateLimit onRateLimit = 3;
     }
 
+    message Tcp {
+      // The number of allowed TCP connections in the interval
+      //  +optional
+      uint32 connections = 1;
+
+      // The the interval for which `connections` will be accounted.
+      //  +optional
+      google.protobuf.Duration interval = 2;
+    }
+
     // The HTTP RateLimit configuration
     // +optional
     Http http = 1;
+
+    // The TCP RateLimit configuration
+    // +optional
+    Tcp tcp = 2;
   }
 
   // Configuration for RateLimit

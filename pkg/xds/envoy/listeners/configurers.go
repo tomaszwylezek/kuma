@@ -293,3 +293,11 @@ func DNS(vips map[string]string, emptyDnsPort uint32) ListenerBuilderOpt {
 		})
 	})
 }
+
+func LocalRateLimiter(statsName string) FilterChainBuilderOpt {
+	return FilterChainBuilderOptFunc(func(config *FilterChainBuilderConfig) {
+		config.AddV3(&v3.LocalRateLimitConfigurer{
+			StatsName: statsName,
+		})
+	})
+}
