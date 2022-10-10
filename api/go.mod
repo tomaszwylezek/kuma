@@ -8,12 +8,12 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.2
 	github.com/kumahq/protoc-gen-kumadoc v0.1.7
-	github.com/onsi/ginkgo v1.16.2
-	github.com/onsi/gomega v1.13.0
+	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/gomega v1.21.1
 	github.com/pkg/errors v0.9.1
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 	google.golang.org/grpc v1.38.0
-	google.golang.org/protobuf v1.27.0
+	google.golang.org/protobuf v1.28.0
 // When running `make generate` in this folder, one can get into errors of missing proto dependecies
 // To solve the issue, uncomment the section below and run `go mod download`
 //github.com/cncf/udpa latest
